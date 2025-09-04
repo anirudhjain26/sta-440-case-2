@@ -16,9 +16,23 @@ execute:
   message: false
 ---
 
+```{r}
+# imports
+library(readr)
+```
+
 # Introduction
 
 # Data
+
+```{r, message=FALSE}
+JO2 <- read_csv("data/JO2.csv", show_col_types = FALSE)
+```
+
+```{r}
+head(JO2)
+# first row looks incorrectly imported ----> fix it (header row?)
+```
 
 # Exploratory Data Analysis
 
