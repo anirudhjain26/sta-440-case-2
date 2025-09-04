@@ -1,0 +1,35 @@
+---
+title: "STA 440 Case 2"
+author: "Krish Bansal, Lily Seelig, Anirudh Jain"
+# format: pdf
+format: 
+  pdf:
+    documentclass: article 
+    fontsize: 11pt         
+    classoption: oneside       
+editor: visual
+geometry: margin=1in
+title-block-spacing: compact
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+# Introduction
+
+# Data
+
+# Exploratory Data Analysis
+
+# Model
+
+# Results
+
+# Conclusion
+
+# Limitations and Future Work
+
+\newpage
+
+# Appendix
