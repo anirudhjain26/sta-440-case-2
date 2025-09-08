@@ -26,6 +26,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(broom)
 ```
 
 # Introduction
@@ -98,8 +99,53 @@ ggplot(df |> filter(!is_basal), aes(x=Dose, y=log(JO2), group=MouseID, color=Gen
   geom_point() +
   facet_wrap(~Substrate, scales="free_x") +
   stat_summary(aes(group=Genotype), fun.data=mean_cl_boot, geom="errorbar", width=0.05, color="black")
+```
 
 
+```{r}
+# subject-level spaghetti by substrate
+ggplot(data_long, aes(x = Dose, y = JO2, color = Genotype, group = Subject)) +
+  geom_line(alpha = 0.5) +
+  facet_wrap(~ Substrate, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "JO2 across Dose by Substrate and Genotype")
+
+# genotype means ± SE per substrate×dose
+summary_data <- data_long %>%
+  group_by(Substrate, Dose, Genotype) %>%
+  summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop")
+
+ggplot(summary_data, aes(Dose, mean_JO2, color = Genotype, group = Genotype)) +
+  geom_line() + geom_point() +
+  geom_errorbar(aes(ymin = mean_JO2 - se, ymax = mean_JO2 + se), width = 0.1) +
+  facet_wrap(~ Substrate, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "Mean JO2 ± SE", y = "Mean JO2")
+```
+
+```{r}
+data_long %>%
+  filter(Dose %in% c("Basal", "-12.95")) %>%
+  group_by(Genotype, Substrate, Dose) %>%
+  summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop") %>%
+  ggplot(aes(x = Dose, y = mean_JO2, fill = Genotype)) +
+  geom_col(position = position_dodge()) +
+  geom_errorbar(aes(ymin = mean_JO2-se, ymax = mean_JO2+se),
+                width = 0.2, position = position_dodge(0.9)) +
+  facet_wrap(~Substrate, scales = "free_y") +
+  theme_minimal()
+```
+
+```{r}
+slopes <- data_long %>%
+  group_by(Subject, Genotype, Substrate) %>%
+  do(tidy(lm(JO2 ~ Dose_num, data = .))) %>%
+  filter(term == "Dose_num")
+
+ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
+  geom_boxplot(alpha = 0.6, position = position_dodge()) +
+  theme_minimal() +
+  labs(y = "Slope of JO2 vs Dose", title = "Respiratory sensitivity by Genotype")
 ```
 
 # Model
