@@ -16,9 +16,13 @@ execute:
   message: false
 ---
 
-```{r}
+```{r, message=FALSE}
 # imports
 library(readr)
+library(tidyverse)
+library(patchwork)
+library(scales)
+library(ggplot2)
 ```
 
 # Introduction
@@ -26,12 +30,35 @@ library(readr)
 # Data
 
 ```{r, message=FALSE}
-JO2 <- read_csv("data/JO2.csv", show_col_types = FALSE)
+data <- read_csv("data/JO2.csv", show_col_types = FALSE, skip = 1)
 ```
 
 ```{r}
-head(JO2)
+head(data)
 # first row looks incorrectly imported ----> fix it (header row?)
+```
+
+```{r}
+
+data_long <- data %>%
+  pivot_longer(
+    cols = -Subject,   # dont need subject col
+    names_to = "Condition",
+    values_to = "JO2"
+  )
+
+data_long <- data_long %>%
+  separate(Condition, into = c("Substrate", "Dose"), sep = "_")
+
+
+data_long <- data_long %>%
+  mutate(
+    Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg")
+  )
+
+data_long <- data_long %>%
+  drop_na(JO2)
+
 ```
 
 # Exploratory Data Analysis
