@@ -23,6 +23,9 @@ library(tidyverse)
 library(patchwork)
 library(scales)
 library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
 ```
 
 # Introduction
@@ -30,35 +33,48 @@ library(ggplot2)
 # Data
 
 ```{r, message=FALSE}
-data <- read_csv("data/JO2.csv", show_col_types = FALSE, skip = 1)
-```
 
-```{r}
-head(data)
-# first row looks incorrectly imported ----> fix it (header row?)
-```
+raw <- read_csv("data/JO2.csv", col_names = FALSE, show_col_types = FALSE)
 
-```{r}
+header1 <- as.character(unlist(raw[1, ]))  # substrates in row 1
+header2 <- as.character(unlist(raw[2, ]))  # doses in row 2
 
-data_long <- data %>%
+sub <- header1
+sub[1] <- "Subject"
+for (i in 2:length(sub)) {
+  if (is.na(sub[i]) || sub[i] == "") sub[i] <- sub[i - 1]
+}
+
+dose <- header2
+dose[1] <- NA  # first col is Subject
+
+new_names <- c("Subject", paste(sub[-1], dose[-1], sep = "_"))
+
+dat <- raw[-c(1, 2), ]
+names(dat) <- new_names
+dat <- dat %>% mutate(across(-Subject, ~ suppressWarnings(as.numeric(.))))
+
+data_long <- dat %>%
   pivot_longer(
-    cols = -Subject,   # dont need subject col
-    names_to = "Condition",
+    cols = -Subject,
+    names_to = c("Substrate", "Dose"),
+    names_sep = "_",
     values_to = "JO2"
-  )
-
-data_long <- data_long %>%
-  separate(Condition, into = c("Substrate", "Dose"), sep = "_")
-
-
-data_long <- data_long %>%
+  ) %>%
   mutate(
-    Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg")
-  )
+    Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg"),
+    # keep Basal as a category; make numeric where applicable
+    Dose_num = suppressWarnings(as.numeric(Dose)),
+    Dose = factor(Dose,
+                  levels = c("Basal", "-12.95","-13.65","-13.95","-14.19","-14.36","-14.49"),
+                  ordered = TRUE)
+  ) %>%
+  drop_na(JO2)   
 
-data_long <- data_long %>%
-  drop_na(JO2)
+```
 
+```{r}
+glimpse(data_long)
 ```
 
 # Exploratory Data Analysis
