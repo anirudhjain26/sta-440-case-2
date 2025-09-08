@@ -92,17 +92,6 @@ hist(log10(data_long$JO2), breaks=60, main="log10(JO2)")
 ```
 
 ```{r}
-#| label: dose-response-by-substrate
-
-ggplot(df |> filter(!is_basal), aes(x=Dose, y=log(JO2), group=MouseID, color=Genotype)) +
-  geom_line(alpha=0.3) +
-  geom_point() +
-  facet_wrap(~Substrate, scales="free_x") +
-  stat_summary(aes(group=Genotype), fun.data=mean_cl_boot, geom="errorbar", width=0.05, color="black")
-```
-
-
-```{r}
 # subject-level spaghetti by substrate
 ggplot(data_long, aes(x = Dose, y = JO2, color = Genotype, group = Subject)) +
   geom_line(alpha = 0.5) +
