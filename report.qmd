@@ -81,13 +81,29 @@ glimpse(data_long)
 # Exploratory Data Analysis
 
 ```{r}
-#| label: histogram 
+#| label: histograms
 
-#raw
-hist(data_long$JO2, breaks=60, main="JO2 (raw)")
+# Raw JO2
+hist(
+  data_long$JO2,
+  breaks = 60,
+  main = "Distribution of Raw JO₂ Values",
+  xlab = "Oxygen Consumption (JO₂, pmol/min)",
+  ylab = "Frequency",
+  col = "lightblue",
+  border = "white"
+)
 
-#log10
-hist(log10(data_long$JO2), breaks=60, main="log10(JO2)")
+# Log10-transformed JO2
+hist(
+  log10(data_long$JO2),
+  breaks = 60,
+  main = "Distribution of Log₁₀-Transformed JO₂ Values",
+  xlab = "Log₁₀(Oxygen Consumption, JO₂)",
+  ylab = "Frequency",
+  col = "lightgreen",
+  border = "white"
+)
 
 ```
 
