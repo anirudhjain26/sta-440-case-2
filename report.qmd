@@ -62,10 +62,10 @@ data_long <- dat %>%
     names_sep = "_",
     values_to = "JO2"
   ) %>%
+  filter(Dose != "Basal") %>%
   mutate(
     Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg"),
-    # keep Basal as a category; make numeric where applicable
-    Dose_num = suppressWarnings(as.numeric(Dose)),
+    Dose_num = as.numeric(Dose), 
     Dose = factor(Dose,
                   levels = c("Basal", "-12.95","-13.65","-13.95","-14.19","-14.36","-14.49"),
                   ordered = TRUE)
