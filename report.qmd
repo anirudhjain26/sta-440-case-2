@@ -92,12 +92,15 @@ hist(log10(data_long$JO2), breaks=60, main="log10(JO2)")
 ```
 
 ```{r}
-# subject-level spaghetti by substrate
 ggplot(data_long, aes(x = Dose, y = JO2, color = Genotype, group = Subject)) +
   geom_line(alpha = 0.5) +
-  facet_wrap(~ Substrate, scales = "free_y") +
+  facet_wrap(~ Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) +
   theme_minimal() +
-  labs(title = "JO2 across Dose by Substrate and Genotype")
+  labs(title = "JO2 across Dose by Substrate and Genotype") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),  # rotate dose labels
+    strip.text = element_text(size = 9)  # control facet label size
+  )
 
 # genotype means ± SE per substrate×dose
 summary_data <- data_long %>%
@@ -105,11 +108,16 @@ summary_data <- data_long %>%
   summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop")
 
 ggplot(summary_data, aes(Dose, mean_JO2, color = Genotype, group = Genotype)) +
-  geom_line() + geom_point() +
+  geom_line() + 
+  geom_point() +
   geom_errorbar(aes(ymin = mean_JO2 - se, ymax = mean_JO2 + se), width = 0.1) +
-  facet_wrap(~ Substrate, scales = "free_y") +
+  facet_wrap(~ Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) + # wrap long facet labels
   theme_minimal() +
-  labs(title = "Mean JO2 ± SE", y = "Mean JO2")
+  labs(title = "Mean JO2 ± SE", y = "Mean JO2") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),  # fix dose labels
+    strip.text = element_text(size = 9)                           # fix facet labels
+  )
 ```
 
 ```{r}
