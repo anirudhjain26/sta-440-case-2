@@ -134,7 +134,10 @@ slopes <- data_long %>%
 ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
   geom_boxplot(alpha = 0.6, position = position_dodge()) +
   theme_minimal() +
-  labs(y = "Slope of JO2 vs Dose", title = "Respiratory sensitivity by Genotype")
+  labs(y = "Slope of JO2 vs Dose", title = "Respiratory sensitivity by Genotype") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10)  # rotate labels
+  )
 ```
 
 ```{r}
