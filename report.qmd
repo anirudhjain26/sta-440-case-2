@@ -137,6 +137,19 @@ ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
   labs(y = "Slope of JO2 vs Dose", title = "Respiratory sensitivity by Genotype")
 ```
 
+```{r}
+heat <- data_long %>%
+  group_by(Substrate, Dose, Genotype) %>%
+  summarise(mean_JO2 = mean(JO2), .groups = "drop")
+
+ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
+  geom_tile() +
+  facet_wrap(~Genotype) +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  labs(title = "Heatmap of mean JO2 across Substrates & Doses")
+```
+
 # Model
 
 # Results
