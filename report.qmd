@@ -243,6 +243,51 @@ ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_log_JO2)) +
 
 # Model
 
+```{r}
+
+library(tidyverse)
+
+df <- read.csv("data/JO2.csv")
+
+# Reshape into tidy format
+substrates <- list(
+  GM   = 2:7,
+  PM   = 9:14,
+  PcM  = 16:21,
+  PMPc = 23:28,
+  PMOc = 30:35,
+  OcM  = 37:42
+)
+
+doses <- c("-12.95", "-13.65", "-13.95", "-14.19", "-14.36", "-14.49")
+
+tidy_data <- data.frame()
+for (sub in names(substrates)) {
+  cols <- substrates[[sub]]
+  for (i in seq_along(cols)) {
+    col_idx <- cols[i]
+    tmp <- df[-1, c(1, col_idx)]  # drop header row, keep Subject + JO2 col
+    colnames(tmp) <- c("Subject", "JO2")
+    tmp$Substrate <- sub
+    tmp$Dose <- doses[i]
+    tidy_data <- rbind(tidy_data, tmp)
+  }
+}
+
+# Convert factors
+tidy_data$Substrate <- factor(tidy_data$Substrate)
+tidy_data$Dose <- factor(tidy_data$Dose, levels = doses, ordered = TRUE)
+tidy_data$Subject <- factor(tidy_data$Subject)
+
+# ---- Fit raw-scale LM ----
+lm_raw <- lm(JO2 ~ Substrate * Dose, data = tidy_data)
+
+# ---- Summaries ----
+summary(lm_raw)
+anova(lm_raw)
+
+```
+
 # Results
 
 # Conclusion
