@@ -194,53 +194,6 @@ ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
   )
 ```
 
-# Log Transformed EDA
-
-```{r}
-ggplot(data_long, aes(x = Dose, y = logJO2, color = Genotype, group = Subject)) +
-  geom_line(alpha = 0.5) +
-  facet_wrap(~ Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) +
-  theme_minimal() +
-  labs(title = "Log(JO2) across Dose by Substrate and Genotype") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),  # rotate dose labels
-    strip.text = element_text(size = 9)  # control facet label size
-  )
-
-# genotype means ± SE per substrate×dose
-summary_data <- data_long %>%
-  group_by(Substrate, Dose, Genotype) %>%
-  summarise(mean_log_JO2 = mean(logJO2), se = sd(logJO2)/sqrt(n()), .groups = "drop")
-
-ggplot(summary_data, aes(Dose, mean_log_JO2, color = Genotype, group = Genotype)) +
-  geom_line() + 
-  geom_point() +
-  geom_errorbar(aes(ymin = mean_log_JO2 - se, ymax = mean_log_JO2 + se), width = 0.1) +
-  facet_wrap(~ Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) + # wrap long facet labels
-  theme_minimal() +
-  labs(title = "Mean log(JO2) ± SE", y = "Mean log(JO2)") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),  # fix dose labels
-    strip.text = element_text(size = 9)                           # fix facet labels
-  )
-```
-
-```{r}
-heat <- data_long %>%
-  group_by(Substrate, Dose, Genotype) %>%
-  summarise(mean_log_JO2 = mean(logJO2), .groups = "drop")
-
-ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_log_JO2)) +
-  geom_tile() +
-  facet_wrap(~Genotype) +
-  scale_fill_viridis_c() +
-  theme_minimal() +
-  labs(title = "Heatmap of mean log(JO2) across Substrates & Doses") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)  # rotate x labels
-  )
-```
-
 # Model
 
 ```{r}
