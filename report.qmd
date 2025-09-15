@@ -198,46 +198,19 @@ ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
 
 ```{r}
 
-library(tidyverse)
+# Linear model on raw JO2, ignoring subject correlation
+lm_raw <- lm(JO2 ~ Substrate * Dose, data = data_long)
 
-df <- read.csv("data/JO2.csv")
-
-# Reshape into tidy format
-substrates <- list(
-  GM   = 2:7,
-  PM   = 9:14,
-  PcM  = 16:21,
-  PMPc = 23:28,
-  PMOc = 30:35,
-  OcM  = 37:42
-)
-
-doses <- c("-12.95", "-13.65", "-13.95", "-14.19", "-14.36", "-14.49")
-
-tidy_data <- data.frame()
-for (sub in names(substrates)) {
-  cols <- substrates[[sub]]
-  for (i in seq_along(cols)) {
-    col_idx <- cols[i]
-    tmp <- df[-1, c(1, col_idx)]  # drop header row, keep Subject + JO2 col
-    colnames(tmp) <- c("Subject", "JO2")
-    tmp$Substrate <- sub
-    tmp$Dose <- doses[i]
-    tidy_data <- rbind(tidy_data, tmp)
-  }
-}
-
-# Convert factors
-tidy_data$Substrate <- factor(tidy_data$Substrate)
-tidy_data$Dose <- factor(tidy_data$Dose, levels = doses, ordered = TRUE)
-tidy_data$Subject <- factor(tidy_data$Subject)
-
-# ---- Fit raw-scale LM ----
-lm_raw <- lm(JO2 ~ Substrate * Dose, data = tidy_data)
-
-# ---- Summaries ----
+# Model summary
 summary(lm_raw)
+
+# ANOVA table (Type I by default)
 anova(lm_raw)
+
+# If you want Type II/III sums of squares (like in the slides):
+library(car)
+Anova(lm_raw, type = 2)  # Type II
+Anova(lm_raw, type = 3)  # Type III
 
 ```
 
