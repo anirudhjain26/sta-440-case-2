@@ -76,23 +76,23 @@ new_names <- c("Subject", paste(sub[-1], dose[-1], sep = "_"))
 
 dat <- raw[-c(1, 2), ]
 names(dat) <- new_names
-dat <- dat %>% mutate(across(-Subject, ~ suppressWarnings(as.numeric(.))))
+dat <- dat |> mutate(across(-Subject, ~ suppressWarnings(as.numeric(.))))
 
-data_long <- dat %>%
+data_long <- dat |>
   pivot_longer(
     cols = -Subject,
     names_to = c("Substrate", "Dose"),
     names_sep = "_",
     values_to = "JO2"
-  ) %>%
-  filter(Dose != "Basal") %>%
+  ) |>
+  filter(Dose != "Basal") |>
   mutate(
     Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg"),
     Dose_num = as.numeric(Dose), 
     Dose = factor(Dose,
                   levels = c("Basal", "-12.95","-13.65","-13.95","-14.19","-14.36","-14.49"),
                   ordered = TRUE)
-  ) %>%
+  ) |>
   drop_na(JO2)   
 
 ```
@@ -128,7 +128,7 @@ hist(
   border = "white"
 )
 
-data_long <- data_long %>%
+data_long <- data_long |>
   mutate(logJO2 = log10(JO2))
 
 ```
@@ -136,10 +136,10 @@ data_long <- data_long %>%
 ```{r}
 
 # Keep Dose numeric
-data_long <- data_long %>%
+data_long <- data_long |>
   mutate(Dose = as.numeric(as.character(Dose)))
 
-summary_data <- summary_data %>%
+summary_data <- summary_data |>
   mutate(Dose = as.numeric(as.character(Dose)))
 
 # Get all unique doses
@@ -174,10 +174,10 @@ ggplot(summary_data, aes(Dose, mean_JO2, color = Genotype, group = Genotype)) +
 ```
 
 ```{r}
-data_long %>%
-  filter(Dose %in% c("Basal", "-12.95")) %>%
-  group_by(Genotype, Substrate, Dose) %>%
-  summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop") %>%
+data_long |>
+  filter(Dose %in% c("Basal", "-12.95")) |>
+  group_by(Genotype, Substrate, Dose) |>
+  summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop") |>
   ggplot(aes(x = Dose, y = mean_JO2, fill = Genotype)) +
   geom_col(position = position_dodge()) +
   geom_errorbar(aes(ymin = mean_JO2-se, ymax = mean_JO2+se),
@@ -187,9 +187,9 @@ data_long %>%
 ```
 
 ```{r}
-slopes <- data_long %>%
-  group_by(Subject, Genotype, Substrate) %>%
-  do(tidy(lm(JO2 ~ Dose_num, data = .))) %>%
+slopes <- data_long |>
+  group_by(Subject, Genotype, Substrate) |>
+  do(tidy(lm(JO2 ~ Dose_num, data = .))) |>
   filter(term == "Dose_num")
 
 ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
@@ -202,8 +202,8 @@ ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
 ```
 
 ```{r}
-heat <- data_long %>%
-  group_by(Substrate, Dose, Genotype) %>%
+heat <- data_long |>
+  group_by(Substrate, Dose, Genotype) |>
   summarise(mean_JO2 = mean(JO2), .groups = "drop")
 
 ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
