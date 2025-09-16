@@ -28,6 +28,8 @@ library(tidyr)
 library(stringr)
 library(broom)
 library(car)
+library(lme4)
+library(lmerTest)
 ```
 
 ## Background
@@ -231,6 +233,30 @@ anova(lm_raw)
 # If you want Type II/III sums of squares (like in the slides):
 Anova(lm_raw, type = 2)  # Type II
 Anova(lm_raw, type = 3)  # Type III
+
+# Marginal (group-level) model: JO2 by genotype only
+lm_marginal <- lm(JO2 ~ Genotype, data = data_long)
+
+# Summary and ANOVA
+summary(lm_marginal)
+anova(lm_marginal)
+
+# Multiple regression with genotype, substrate, dose, and interactions
+lm_multi <- lm(JO2 ~ Genotype * Substrate * Dose, data = data_long)
+
+# Type II/III ANOVA (from car package)
+library(car)
+Anova(lm_multi, type = 2)  # main effects after accounting for others
+Anova(lm_multi, type = 3)  # tests each term with all interactions
+
+# Mixed model: random intercept for each mouse
+lmm <- lmer(JO2 ~ Genotype * Substrate * Dose + (1 | Subject), data = data_long)
+
+# Summary
+summary(lmm)
+
+# Type II/III tests for fixed effects
+anova(lmm, type = 3)  # Type III ANOVA table
 
 ```
 
