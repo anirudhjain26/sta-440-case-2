@@ -27,11 +27,32 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(broom)
+library(car)
 ```
 
-# Introduction
+## Background
 
-# Data
+Mitochondria play a central role in cellular energy metabolism, and alterations in their molecular structures san translate into measurable physiological phenotypes. Characterizing how mitochondrial efficiency changes under different conditions provides important insights into metabolic function and disease mechanisms. 
+
+To this end, researchers often measure mitochondrial respiration under a variety of experimental settings. Multiplexed metabolic assay platforms allow simultaneous evaluation of several aspects of mitochondrial functions across substrates, redox conditions, and energetic states. One critical readout is oxygen flux (JO2), which serves as a direct indicator of mitochondrial respiratory activity. Comparing oxygen flux between experimental groups such as non transgenic and transgenic mice provides a way to evaluate whether genetic differences are associated with altered mitochondrial functions. 
+
+Our analysis focuses on modeling and testing for genotype effects on oxygen flux, while accounting for experimental design factors such as substrate type. The aim is to determine whether mitochondrial efficiency differs by genotype, and whether such effects depend on substrate choice or dose.
+
+## Data
+
+The data for this study was collected from skeletal muscle mitochondria that are isolated from either non-transgenic or transgenic mice, measured during the mitochondrial energy transduction process. For our model we took into account two main factors: substrate type and dose.The primary factor we are interested in is genotype (non transgenic vs transgenic). Substrate and dose serve as design factors, and their interactions with genotype are of central interest in assessing whether genetic differences in mitochondrial function vary across energetic states or substrate conditions. 
+
+The data we were given originally was in a wide format, so we transformed it into a tidy long format for analysis. We also dropped the basal values since they represent the idle state. Some values were missing so we dropped them.
+
+## Model Rationale
+
+## Model Implementation and Evaluation
+
+## Results
+
+## Limitations
+
+## Conclusions
 
 ```{r, message=FALSE}
 
@@ -208,7 +229,6 @@ summary(lm_raw)
 anova(lm_raw)
 
 # If you want Type II/III sums of squares (like in the slides):
-library(car)
 Anova(lm_raw, type = 2)  # Type II
 Anova(lm_raw, type = 3)  # Type III
 
