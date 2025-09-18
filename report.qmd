@@ -11,7 +11,7 @@ editor: visual
 geometry: margin=1in
 title-block-spacing: compact
 execute: 
-  echo: false
+  echo: true
   warning: false
   message: false
 ---
@@ -139,11 +139,16 @@ data_long <- data_long |>
 data_long <- data_long |>
   mutate(Dose = as.numeric(as.character(Dose)))
 
-summary_data <- summary_data |>
-  mutate(Dose = as.numeric(as.character(Dose)))
-
 # Get all unique doses
 all_doses <- sort(unique(data_long$Dose))
+
+summary_data <- data_long |>
+  group_by(Substrate, Genotype, Dose) |>
+  summarise(
+    mean_JO2 = mean(JO2, na.rm = TRUE),
+    se = sd(JO2, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
 
 # Plot individual lines with exact dose labels
 ggplot(data_long, aes(x = Dose, y = JO2, color = Genotype, group = Subject)) +
@@ -219,6 +224,8 @@ ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
 
 # Model
 
+Linear model on raw JO2 & Diagnostics
+
 ```{r}
 
 # Linear model on raw JO2, ignoring subject correlation
@@ -230,10 +237,15 @@ summary(lm_raw)
 # ANOVA table (Type I by default)
 anova(lm_raw)
 
-# If you want Type II/III sums of squares (like in the slides):
+# Type II/III sums of squares:
 Anova(lm_raw, type = 2)  # Type II
 Anova(lm_raw, type = 3)  # Type III
 
+```
+
+Marginal Model
+
+```{r}
 # Marginal (group-level) model: JO2 by genotype only
 lm_marginal <- lm(JO2 ~ Genotype, data = data_long)
 
@@ -249,6 +261,11 @@ library(car)
 Anova(lm_multi, type = 2)  # main effects after accounting for others
 Anova(lm_multi, type = 3)  # tests each term with all interactions
 
+```
+
+Mixed Model
+
+```{r}
 # Mixed model: random intercept for each mouse
 lmm <- lmer(JO2 ~ Genotype * Substrate * Dose + (1 | Subject), data = data_long)
 
@@ -257,7 +274,6 @@ summary(lmm)
 
 # Type II/III tests for fixed effects
 anova(lmm, type = 3)  # Type III ANOVA table
-
 ```
 
 # Results
