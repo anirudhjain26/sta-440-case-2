@@ -329,6 +329,65 @@ summary(lmm)
 anova(lmm, type = 3) # Type III ANOVA table
 ```
 
+Model Tables
+
+```{r}
+#| label: tbl-lm-raw-coefs
+#| tbl-cap: "Linear model (JO2 ~ Substrate * Dose) coefficients"
+#| echo: false
+#| message: false
+library(broom)
+lm_raw_tidy <- tidy(lm_raw)
+knitr::kable(lm_raw_tidy, digits = 3)
+```
+
+```{r}
+#| label: tbl-lm-raw-anova
+#| tbl-cap: "Type II ANOVA for JO2 ~ Substrate * Dose"
+#| echo: false
+anova_raw <- as.data.frame(Anova(lm_raw, type = 2))
+anova_raw$Term <- rownames(anova_raw)
+anova_raw <- dplyr::select(anova_raw, Term, dplyr::everything())
+knitr::kable(anova_raw, digits = 3)
+```
+
+```{r}
+#| label: tbl-lm-multi-anova
+#| tbl-cap: "Type III ANOVA for JO2 ~ Genotype * Substrate * Dose"
+#| echo: false
+anova_multi <- as.data.frame(Anova(lm_multi, type = 3))
+anova_multi$Term <- rownames(anova_multi)
+anova_multi <- dplyr::select(anova_multi, Term, dplyr::everything())
+knitr::kable(anova_multi, digits = 3)
+```
+
+```{r}
+#| label: tbl-lmm-fixed
+#| tbl-cap: "Mixed model fixed effects (lmer)"
+#| echo: false
+lmm_coef <- as.data.frame(coef(summary(lmm)))
+lmm_coef$Term <- rownames(lmm_coef)
+lmm_coef <- dplyr::select(lmm_coef, Term, Estimate, `Std. Error`, df, `t value`, `Pr(>|t|)`)
+knitr::kable(lmm_coef, digits = 3,
+             col.names = c("Term", "Estimate", "Std. Error", "df", "t value", "Pr(>|t|)"))
+```
+
+```{r}
+#| label: tbl-model-fit
+#| tbl-cap: "Model fit statistics"
+#| echo: false
+fit_tbl <- tibble::tibble(
+  Model = c("lm_marginal", "lm_raw", "lm_multi", "lmm"),
+  AIC = c(AIC(lm_marginal), AIC(lm_raw), AIC(lm_multi), AIC(lmm)),
+  BIC = c(BIC(lm_marginal), BIC(lm_raw), BIC(lm_multi), BIC(lmm)),
+  logLik = c(as.numeric(logLik(lm_marginal)), as.numeric(logLik(lm_raw)),
+             as.numeric(logLik(lm_multi)), as.numeric(logLik(lmm))),
+  DF_Residual = c(df.residual(lm_marginal), df.residual(lm_raw), df.residual(lm_multi), NA_integer_),
+  N = nrow(data_long)
+)
+knitr::kable(fit_tbl, digits = 3)
+```
+
 ```{r, warning=FALSE}
 #| label: ggeffects-curves
 #| fig-cap: "Predicted JO2 vs dose by substrate and genotype from mixed model"
@@ -379,6 +438,16 @@ ggplot(contrast_df, aes(x = Dose, y = Substrate, fill = estimate)) +
        Substrates and Doses",
         x = "Dose (ΔGATP)", y = "Substrate"
     )
+```
+
+```{r}
+#| label: tbl-emm-contrasts
+#| tbl-cap: "Estimated genotype differences (Tg – NT) by substrate and dose"
+#| echo: false
+emm_tab <- contrast_df |>
+  dplyr::select(Substrate, Dose, estimate, SE, df, t.ratio, p.value)
+knitr::kable(emm_tab, digits = 3,
+             col.names = c("Substrate", "Dose", "Estimate", "SE", "df", "t", "p"))
 ```
 
 ```{r}
