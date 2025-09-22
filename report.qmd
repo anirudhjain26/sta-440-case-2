@@ -70,7 +70,7 @@ The mixed model includes genotype, substrate, and dose as fixed effects, while a
 
 While simpler models provided useful descriptive insights, they failed to fully respect the experimental design. The baseline and genotype-only models ignored key sources of variation, while the full factorial model captured interaction effects but treated repeated measures from the same subject as independent, inflating the risk of false positives. The mixed-effects model addressed these shortcomings by incorporating subject-level random effects, thereby accounting for within-mouse correlation while still testing the joint effects of genotype, substrate, and workload at the population level. This framework provides the most statistically rigorous and biologically meaningful analysis of our dataset, balancing model complexity with the need to respect the hierarchical structure of the data.
 
-## Model Implementation
+## Model Implementation and Evaluation
 
 ## Results
 
