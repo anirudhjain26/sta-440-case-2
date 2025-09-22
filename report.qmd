@@ -278,6 +278,58 @@ anova(lmm, type = 3)  # Type III ANOVA table
 
 # Results
 
+```{r, warning=FALSE}
+library(ggeffects)
+library(ggplot2)
+
+# Predictions across dose values for each genotype × substrate
+pred <- ggpredict(lmm, terms = c("Dose [all]", "Genotype", "Substrate"))
+
+# Plot fitted curves with CIs
+ggplot(pred, aes(x = x, y = predicted, color = group)) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
+  facet_wrap(~facet, scales = "free_y") +
+  theme_minimal() +
+  labs(
+    title = "Fitted JO2 vs Dose by Substrate and Genotype",
+    x = "Dose (ΔGATP)", y = "Predicted JO2",
+    color = "Genotype", fill = "Genotype"
+  )
+```
+
+```{r}
+library(emmeans)
+library(dplyr)
+
+# Estimated marginal means for each Substrate × Dose × Genotype
+emm <- emmeans(lmm, ~ Genotype | Substrate * Dose)
+
+# Compute differences Tg – NT
+contrast_df <- contrast(emm, method = "revpairwise") %>%
+  as.data.frame()
+
+# Plot heatmap
+ggplot(contrast_df, aes(x = Dose, y = Substrate, fill = estimate)) +
+  geom_tile() +
+  scale_fill_gradient2(
+    low = "blue", mid = "white", high = "red", midpoint = 0,
+    name = "Tg – NT difference"
+  ) +
+  theme_minimal() +
+  labs(title = "Genotype Effect (Tg – NT) across \
+       Substrates and Doses",
+       x = "Dose (ΔGATP)", y = "Substrate")
+```
+
+```{r}
+plot(lmm, resid(., type="pearson") ~ fitted(.), abline=0)
+
+# QQ plot
+qqnorm(resid(lmm))
+qqline(resid(lmm))
+```
+
 # Conclusion
 
 # Limitations and Future Work
