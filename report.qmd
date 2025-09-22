@@ -11,7 +11,7 @@ editor: visual
 geometry: margin=1in
 title-block-spacing: compact
 execute: 
-  echo: true
+  echo: false
   warning: false
   message: false
 ---
