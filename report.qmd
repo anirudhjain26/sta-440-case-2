@@ -85,12 +85,12 @@ data_long <- dat |>
     names_sep = "_",
     values_to = "JO2"
   ) |>
-  filter(Dose != "Basal") |>
+  filter(!(Dose %in% c("Basal", "-12.95"))) |>
   mutate(
     Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg"),
     Dose_num = as.numeric(Dose), 
     Dose = factor(Dose,
-                  levels = c("Basal", "-12.95","-13.65","-13.95","-14.19","-14.36","-14.49"),
+                  levels = c("-13.65","-13.95","-14.19","-14.36","-14.49"),
                   ordered = TRUE)
   ) |>
   drop_na(JO2)   
@@ -180,7 +180,7 @@ ggplot(summary_data, aes(Dose, mean_JO2, color = Genotype, group = Genotype)) +
 
 ```{r}
 data_long |>
-  filter(Dose %in% c("Basal", "-12.95")) |>
+  filter(Dose %in% c("Basal", "-13.65")) |>
   group_by(Genotype, Substrate, Dose) |>
   summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop") |>
   ggplot(aes(x = Dose, y = mean_JO2, fill = Genotype)) +
