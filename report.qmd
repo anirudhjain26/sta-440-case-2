@@ -48,6 +48,27 @@ The data we were given originally was in a wide format, so we transformed it int
 
 ## Model Rationale
 
+We employed a sequence of models to evaluate the effects of genotype, substrate, and workload (ΔGATP) on oxygen flux (JO₂). Each model was chosen to address a specific aspect of the experimental design and to progressively incorporate complexity and biological realism.
+
+### Baseline model (lm(JO2 ~ Substrate * Dose)
+
+This model considers only substrate and dose effects, ignoring genotype. It serves as a sanity check to establish whether fuel type and workload influence JO₂ as expected. Its main advantage is simplicity and interpretability, but it does not address the central research question concerning genotype differences.
+
+### Genotype-only model (lm(JO2 ~ Genotype)
+
+This specification provides a crude comparison of JO₂ between NT and Tg mice by collapsing across all experimental conditions. It is useful as an initial test for an overall genotype effect, but it oversimplifies by ignoring the role of substrate and workload.
+
+### Full factorial model (lm(JO2 ~ Genotype * Substrate * Dose)
+
+This model incorporates genotype, substrate, dose, and all interactions. It allows us to examine whether genotype effects vary across substrates or workload levels. The advantage of this approach is that it captures the complexity of the biology, including higher-order interactions. However, it treats each observation as independent and does not account for repeated measures on the same subject, which violates design assumptions.
+
+### Mixed-effects model (preferred; lmer(JO2 ~ Genotype * Substrate * Dose + (1 | Subject)
+
+The mixed model includes genotype, substrate, and dose as fixed effects, while adding a random intercept for the subject. This structure accounts for repeated measures within the same mouse and preserves independence across subjects. It balances interpretability with statistical validity, enabling us to test population-level effects while controlling for subject-level variability. Its main limitation is reduced power to detect high-order interactions, given the modest sample size (6 NT, 6 Tg).
+
+While simpler models provided useful descriptive insights, they failed to fully respect the experimental design. The baseline and genotype-only models ignored key sources of variation, while the full factorial model captured interaction effects but treated repeated measures from the same subject as independent, inflating the risk of false positives. The mixed-effects model addressed these shortcomings by incorporating subject-level random effects, thereby accounting for within-mouse correlation while still testing the joint effects of genotype, substrate, and workload at the population level. This framework provides the most statistically rigorous and biologically meaningful analysis of our dataset, balancing model complexity with the need to respect the hierarchical structure of the data.
+
+
 ## Model Implementation and Evaluation
 
 ## Results
