@@ -60,17 +60,17 @@ The data we were given originally was in a wide format, so we transformed it int
 
 raw <- read_csv("data/JO2.csv", col_names = FALSE, show_col_types = FALSE)
 
-header1 <- as.character(unlist(raw[1, ]))  # substrates in row 1
-header2 <- as.character(unlist(raw[2, ]))  # doses in row 2
+header1 <- as.character(unlist(raw[1, ])) # substrates in row 1
+header2 <- as.character(unlist(raw[2, ])) # doses in row 2
 
 sub <- header1
 sub[1] <- "Subject"
 for (i in 2:length(sub)) {
-  if (is.na(sub[i]) || sub[i] == "") sub[i] <- sub[i - 1]
+    if (is.na(sub[i]) || sub[i] == "") sub[i] <- sub[i - 1]
 }
 
 dose <- header2
-dose[1] <- NA  # first col is Subject
+dose[1] <- NA # first col is Subject
 
 new_names <- c("Subject", paste(sub[-1], dose[-1], sep = "_"))
 
@@ -79,21 +79,22 @@ names(dat) <- new_names
 dat <- dat |> mutate(across(-Subject, ~ suppressWarnings(as.numeric(.))))
 
 data_long <- dat |>
-  pivot_longer(
-    cols = -Subject,
-    names_to = c("Substrate", "Dose"),
-    names_sep = "_",
-    values_to = "JO2"
-  ) |>
-  filter(!(Dose %in% c("Basal", "-12.95"))) |>
-  mutate(
-    Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg"),
-    Dose_num = as.numeric(Dose), 
-    Dose = factor(Dose,
-                  levels = c("-13.65","-13.95","-14.19","-14.36","-14.49"),
-                  ordered = TRUE)
-  ) |>
-  drop_na(JO2)   
+    pivot_longer(
+        cols = -Subject,
+        names_to = c("Substrate", "Dose"),
+        names_sep = "_",
+        values_to = "JO2"
+    ) |>
+    filter(!(Dose %in% c("Basal", "-12.95"))) |>
+    mutate(
+        Genotype = if_else(str_detect(Subject, "^NT"), "NT", "Tg"),
+        Dose_num = as.numeric(Dose),
+        Dose = factor(Dose,
+            levels = c("-13.65", "-13.95", "-14.19", "-14.36", "-14.49"),
+            ordered = TRUE
+        )
+    ) |>
+    drop_na(JO2)
 
 ```
 
@@ -105,121 +106,147 @@ glimpse(data_long)
 
 ```{r}
 #| label: histograms
+#| fig-cap: [
+#|   "Distribution of raw JO2 values",
+#|   "Distribution of log10-transformed JO2 values"
+#| ]
+#| fig-alt: [
+#|   "Histogram of raw oxygen consumption (JO2) values",
+#|   "Histogram of log10 of oxygen consumption (JO2) values"
+#| ]
 
 # Raw JO2
 hist(
-  data_long$JO2,
-  breaks = 60,
-  main = "Distribution of Raw JO2 Values",
-  xlab = "Oxygen Consumption (JO2, pmol/min)",
-  ylab = "Frequency",
-  col = "lightblue",
-  border = "white"
+    data_long$JO2,
+    breaks = 60,
+    main = "Distribution of Raw JO2 Values",
+    xlab = "Oxygen Consumption (JO2, pmol/min)",
+    ylab = "Frequency",
+    col = "lightblue",
+    border = "white"
 )
 
 # Log10-transformed JO2
 hist(
-  log10(data_long$JO2),
-  breaks = 60,
-  main = "Distribution of Log Transformed JO2 Values",
-  xlab = "Log(Oxygen Consumption, JO2)",
-  ylab = "Frequency",
-  col = "lightgreen",
-  border = "white"
+    log10(data_long$JO2),
+    breaks = 60,
+    main = "Distribution of Log Transformed JO2 Values",
+    xlab = "Log(Oxygen Consumption, JO2)",
+    ylab = "Frequency",
+    col = "lightgreen",
+    border = "white"
 )
 
 data_long <- data_long |>
-  mutate(logJO2 = log10(JO2))
+    mutate(logJO2 = log10(JO2))
 
 ```
 
 ```{r}
-
+#| label: jo2-dose-plots
+#| fig-cap: [
+#|   "JO2 across dose by substrate and genotype",
+#|   "Mean JO2 with ±SE by genotype and substrate"
+#| ]
+#| fig-alt: [
+#|   "Line plot of individual subject trajectories over dose, colored by genotype and faceted by substrate",
+#|   "Mean JO2 lines with standard error bars over dose, split by genotype and faceted by substrate"
+#| ]
 # Keep Dose numeric
 data_long <- data_long |>
-  mutate(Dose = as.numeric(as.character(Dose)))
+    mutate(Dose = as.numeric(as.character(Dose)))
 
 # Get all unique doses
 all_doses <- sort(unique(data_long$Dose))
 
 summary_data <- data_long |>
-  group_by(Substrate, Genotype, Dose) |>
-  summarise(
-    mean_JO2 = mean(JO2, na.rm = TRUE),
-    se = sd(JO2, na.rm = TRUE) / sqrt(n()),
-    .groups = "drop"
-  )
+    group_by(Substrate, Genotype, Dose) |>
+    summarise(
+        mean_JO2 = mean(JO2, na.rm = TRUE),
+        se = sd(JO2, na.rm = TRUE) / sqrt(n()),
+        .groups = "drop"
+    )
 
 # Plot individual lines with exact dose labels
 ggplot(data_long, aes(x = Dose, y = JO2, color = Genotype, group = Subject)) +
-  geom_line(alpha = 0.5) +
-  facet_wrap(~ Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) +
-  scale_x_continuous(breaks = all_doses) +  # show all doses exactly
-  theme_minimal() +
-  labs(title = "JO2 across Dose by Substrate and Genotype") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
-    strip.text = element_text(size = 9)
-  )
+    geom_line(alpha = 0.5) +
+    facet_wrap(~Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) +
+    scale_x_continuous(breaks = all_doses) + # show all doses exactly
+    theme_minimal() +
+    labs(title = "JO2 across Dose by Substrate and Genotype") +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+        strip.text = element_text(size = 9)
+    )
 
 # Plot genotype means ± SE with exact dose labels
 ggplot(summary_data, aes(Dose, mean_JO2, color = Genotype, group = Genotype)) +
-  geom_line() + 
-  geom_point() +
-  geom_errorbar(aes(ymin = mean_JO2 - se, ymax = mean_JO2 + se), width = 0.1) +
-  facet_wrap(~ Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) +
-  scale_x_continuous(breaks = all_doses) +  # show all doses exactly
-  theme_minimal() +
-  labs(title = "Mean JO2 ± SE", y = "Mean JO2") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
-    strip.text = element_text(size = 9)
-  )
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin = mean_JO2 - se, ymax = mean_JO2 + se), width = 0.1) +
+    facet_wrap(~Substrate, scales = "free_y", labeller = label_wrap_gen(width = 15)) +
+    scale_x_continuous(breaks = all_doses) + # show all doses exactly
+    theme_minimal() +
+    labs(title = "Mean JO2 ± SE", y = "Mean JO2") +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+        strip.text = element_text(size = 9)
+    )
 
 ```
 
 ```{r}
+#| label: baseline-bar
+#| fig-cap: "Mean JO2 at Basal and low dose (-13.65)"
+#| fig-alt: "Bar chart of mean JO2 comparing Basal to the lowest non-basal dose, by genotype and substrate"
 data_long |>
-  filter(Dose %in% c("Basal", "-13.65")) |>
-  group_by(Genotype, Substrate, Dose) |>
-  summarise(mean_JO2 = mean(JO2), se = sd(JO2)/sqrt(n()), .groups = "drop") |>
-  ggplot(aes(x = Dose, y = mean_JO2, fill = Genotype)) +
-  geom_col(position = position_dodge()) +
-  geom_errorbar(aes(ymin = mean_JO2-se, ymax = mean_JO2+se),
-                width = 0.2, position = position_dodge(0.9)) +
-  facet_wrap(~Substrate, scales = "free_y") +
-  theme_minimal()
+    filter(Dose %in% c("Basal", "-13.65")) |>
+    group_by(Genotype, Substrate, Dose) |>
+    summarise(mean_JO2 = mean(JO2), se = sd(JO2) / sqrt(n()), .groups = "drop") |>
+    ggplot(aes(x = Dose, y = mean_JO2, fill = Genotype)) +
+    geom_col(position = position_dodge()) +
+    geom_errorbar(aes(ymin = mean_JO2 - se, ymax = mean_JO2 + se),
+        width = 0.2, position = position_dodge(0.9)
+    ) +
+    facet_wrap(~Substrate, scales = "free_y") +
+    theme_minimal()
 ```
 
 ```{r}
+#| label: slopes-box
+#| fig-cap: "Distribution of JO2–dose slopes by genotype and substrate"
+#| fig-alt: "Boxplots of linear regression slopes of JO2 versus dose for each subject, split by genotype across substrates"
 slopes <- data_long |>
-  group_by(Subject, Genotype, Substrate) |>
-  do(tidy(lm(JO2 ~ Dose_num, data = .))) |>
-  filter(term == "Dose_num")
+    group_by(Subject, Genotype, Substrate) |>
+    do(tidy(lm(JO2 ~ Dose_num, data = .))) |>
+    filter(term == "Dose_num")
 
 ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
-  geom_boxplot(alpha = 0.6, position = position_dodge()) +
-  theme_minimal() +
-  labs(y = "Slope of JO2 vs Dose", title = "Respiratory sensitivity by Genotype") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10)  # rotate labels
-  )
+    geom_boxplot(alpha = 0.6, position = position_dodge()) +
+    theme_minimal() +
+    labs(y = "Slope of JO2 vs Dose", title = "Respiratory sensitivity by Genotype") +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10) # rotate labels
+    )
 ```
 
 ```{r}
+#| label: heatmap-mean
+#| fig-cap: "Heatmap of mean JO2 across substrates and doses"
+#| fig-alt: "Tile heatmap showing mean JO2 for each substrate and dose combination, faceted by genotype"
 heat <- data_long |>
-  group_by(Substrate, Dose, Genotype) |>
-  summarise(mean_JO2 = mean(JO2), .groups = "drop")
+    group_by(Substrate, Dose, Genotype) |>
+    summarise(mean_JO2 = mean(JO2), .groups = "drop")
 
 ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
-  geom_tile() +
-  facet_wrap(~Genotype) +
-  scale_fill_viridis_c() +
-  theme_minimal() +
-  labs(title = "Heatmap of mean JO2 across Substrates & Doses") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)  # rotate x labels
-  )
+    geom_tile() +
+    facet_wrap(~Genotype) +
+    scale_fill_viridis_c() +
+    theme_minimal() +
+    labs(title = "Heatmap of mean JO2 across Substrates & Doses") +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1) # rotate x labels
+    )
 ```
 
 # Model
@@ -238,8 +265,8 @@ summary(lm_raw)
 anova(lm_raw)
 
 # Type II/III sums of squares:
-Anova(lm_raw, type = 2)  # Type II
-Anova(lm_raw, type = 3)  # Type III
+Anova(lm_raw, type = 2) # Type II
+Anova(lm_raw, type = 3) # Type III
 
 ```
 
@@ -258,8 +285,8 @@ lm_multi <- lm(JO2 ~ Genotype * Substrate * Dose, data = data_long)
 
 # Type II/III ANOVA (from car package)
 library(car)
-Anova(lm_multi, type = 2)  # main effects after accounting for others
-Anova(lm_multi, type = 3)  # tests each term with all interactions
+Anova(lm_multi, type = 2) # main effects after accounting for others
+Anova(lm_multi, type = 3) # tests each term with all interactions
 
 ```
 
@@ -273,12 +300,15 @@ lmm <- lmer(JO2 ~ Genotype * Substrate * Dose + (1 | Subject), data = data_long)
 summary(lmm)
 
 # Type II/III tests for fixed effects
-anova(lmm, type = 3)  # Type III ANOVA table
+anova(lmm, type = 3) # Type III ANOVA table
 ```
 
 # Results
 
 ```{r, warning=FALSE}
+#| label: ggeffects-curves
+#| fig-cap: "Predicted JO2 vs dose by substrate and genotype from mixed model"
+#| fig-alt: "Model-predicted JO2 curves with confidence ribbons across dose, faceted by substrate and colored by genotype"
 library(ggeffects)
 library(ggplot2)
 
@@ -287,18 +317,21 @@ pred <- ggpredict(lmm, terms = c("Dose [all]", "Genotype", "Substrate"))
 
 # Plot fitted curves with CIs
 ggplot(pred, aes(x = x, y = predicted, color = group)) +
-  geom_line(size = 1) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
-  facet_wrap(~facet, scales = "free_y") +
-  theme_minimal() +
-  labs(
-    title = "Fitted JO2 vs Dose by Substrate and Genotype",
-    x = "Dose (ΔGATP)", y = "Predicted JO2",
-    color = "Genotype", fill = "Genotype"
-  )
+    geom_line(size = 1) +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
+    facet_wrap(~facet, scales = "free_y") +
+    theme_minimal() +
+    labs(
+        title = "Fitted JO2 vs Dose by Substrate and Genotype",
+        x = "Dose (ΔGATP)", y = "Predicted JO2",
+        color = "Genotype", fill = "Genotype"
+    )
 ```
 
 ```{r}
+#| label: emm-heatmap
+#| fig-cap: "Genotype effect (Tg – NT) across substrates and doses"
+#| fig-alt: "Heatmap of estimated Tg minus NT differences in JO2 across substrates and doses"
 library(emmeans)
 library(dplyr)
 
@@ -307,23 +340,34 @@ emm <- emmeans(lmm, ~ Genotype | Substrate * Dose)
 
 # Compute differences Tg – NT
 contrast_df <- contrast(emm, method = "revpairwise") %>%
-  as.data.frame()
+    as.data.frame()
 
 # Plot heatmap
 ggplot(contrast_df, aes(x = Dose, y = Substrate, fill = estimate)) +
-  geom_tile() +
-  scale_fill_gradient2(
-    low = "blue", mid = "white", high = "red", midpoint = 0,
-    name = "Tg – NT difference"
-  ) +
-  theme_minimal() +
-  labs(title = "Genotype Effect (Tg – NT) across \
+    geom_tile() +
+    scale_fill_gradient2(
+        low = "blue", mid = "white", high = "red", midpoint = 0,
+        name = "Tg – NT difference"
+    ) +
+    theme_minimal() +
+    labs(
+        title = "Genotype Effect (Tg – NT) across \
        Substrates and Doses",
-       x = "Dose (ΔGATP)", y = "Substrate")
+        x = "Dose (ΔGATP)", y = "Substrate"
+    )
 ```
 
 ```{r}
-plot(lmm, resid(., type="pearson") ~ fitted(.), abline=0)
+#| label: diag-plots
+#| fig-cap: [
+#|   "Residuals versus fitted values for mixed model",
+#|   "QQ plot of mixed model residuals"
+#| ]
+#| fig-alt: [
+#|   "Scatterplot of Pearson residuals against fitted values with reference line at zero",
+#|   "Normal Q-Q plot comparing residual quantiles to theoretical normal quantiles"
+#| ]
+plot(lmm, resid(., type = "pearson") ~ fitted(.), abline = 0)
 
 # QQ plot
 qqnorm(resid(lmm))
