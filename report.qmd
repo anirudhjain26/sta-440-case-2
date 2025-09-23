@@ -72,7 +72,19 @@ While simpler models provided useful descriptive insights, they failed to fully 
 
 ## Model Implementation and Evaluation
 
+We reshaped the raw worksheet into a tidy long format, and restricted analysis to active respiration by removing Basal and the lowest dose (-12.95). We converted dose to a numeric ΔGATP scale for modeling and dropped missing values. Initial checks of distribution and scale (see Figure @fig-histograms-1 and @fig-histograms-2) informed the decision to fit models on raw JO2 while using log-transformed views only for EDA.
+
+We then fit a progression of regression models to quantify effects and interactions: - Baseline linear model without genotype: `JO2 ~ Substrate * Dose` (for design checks). - Genotype-only model: `JO2 ~ Genotype` (coarse group difference). - Full linear model: `JO2 ~ Genotype * Substrate * Dose` (all interactions). - Mixed-effects model with subject intercepts: `JO2 ~ Genotype * Substrate * Dose + (1 | Subject)`.
+
+For the linear models, we report coefficients and ANOVA tables (@tbl-lm-raw-coefs, @tbl-lm-raw-anova, @tbl-lm-multi-anova). For the mixed model, we summarize fixed effects (@tbl-lmm-fixed) and compare overall model fit across candidates using AIC/BIC and log-likelihood (@tbl-model-fit). Model adequacy was assessed via residual–fitted and normal Q–Q diagnostics (Figure @fig-diag-plots-1 and @fig-diag-plots-2). To aid interpretation, we visualized fitted curves with 95% CIs from the mixed model (@fig-ggeffects-curves) and computed estimated marginal means and Tg–NT contrasts across Substrate × Dose cells (@fig-emm-heatmap; @tbl-emm-contrasts). Supporting exploratory figures show raw trajectories and group means over dose (Figures @fig-jo2-dose-plots-1 and @fig-jo2-dose-plots-2), per-subject dose–response slopes (@fig-slopes-box), and mean JO2 heatmaps (@fig-heatmap-mean).
+
 ## Results
+
+Across substrates, JO2 exhibits a clear dose-dependent response and substantial substrate-to-substrate variability (see trajectories and means in Figures @fig-jo2-dose-plots-1 and @fig-jo2-dose-plots-2, and the mean heatmap in @fig-heatmap-mean). The baseline linear model confirms strong effects of Substrate and Dose and their interaction (@tbl-lm-raw-anova). Incorporating Genotype and its interactions in the full linear model indicates that genotype differences are not uniform; they depend on the substrate and/or dose context (@tbl-lm-multi-anova).
+
+Accounting for repeated measures with a subject-level random intercept, the mixed-effects model provides the primary inference. Fixed-effect estimates in @tbl-lmm-fixed quantify the average genotype difference at the reference levels and how that difference varies with substrate and dose via interaction terms. The fitted curves from @fig-ggeffects-curves visualize these patterns: separation between Tg and NT varies by substrate and across ΔGATP, with uncertainty bands reflecting the modest sample size. The EMM contrast heatmap and table (@fig-emm-heatmap; @tbl-emm-contrasts) pinpoint specific Substrate × Dose combinations where Tg differs from NT and summarize effect sizes with standard errors and p-values.
+
+Taken together, the results support dose- and substrate-dependent mitochondrial respiration with evidence of genotype effects that are context-specific. Where significant contrasts appear in @tbl-emm-contrasts, they align with the visual separation seen in @fig-ggeffects-curves, while diagnostics in Figures @fig-diag-plots-1 and @fig-diag-plots-2 do not indicate major violations of linear model assumptions. Model comparison in @tbl-model-fit favors the mixed-effects specification, balancing improved fit with appropriate handling of within-subject correlation.
 
 ## Limitations
 
@@ -368,8 +380,10 @@ knitr::kable(anova_multi, digits = 3)
 lmm_coef <- as.data.frame(coef(summary(lmm)))
 lmm_coef$Term <- rownames(lmm_coef)
 lmm_coef <- dplyr::select(lmm_coef, Term, Estimate, `Std. Error`, df, `t value`, `Pr(>|t|)`)
-knitr::kable(lmm_coef, digits = 3,
-             col.names = c("Term", "Estimate", "Std. Error", "df", "t value", "Pr(>|t|)"))
+knitr::kable(lmm_coef,
+    digits = 3,
+    col.names = c("Term", "Estimate", "Std. Error", "df", "t value", "Pr(>|t|)")
+)
 ```
 
 ```{r}
@@ -377,13 +391,15 @@ knitr::kable(lmm_coef, digits = 3,
 #| tbl-cap: "Model fit statistics"
 #| echo: false
 fit_tbl <- tibble::tibble(
-  Model = c("lm_marginal", "lm_raw", "lm_multi", "lmm"),
-  AIC = c(AIC(lm_marginal), AIC(lm_raw), AIC(lm_multi), AIC(lmm)),
-  BIC = c(BIC(lm_marginal), BIC(lm_raw), BIC(lm_multi), BIC(lmm)),
-  logLik = c(as.numeric(logLik(lm_marginal)), as.numeric(logLik(lm_raw)),
-             as.numeric(logLik(lm_multi)), as.numeric(logLik(lmm))),
-  DF_Residual = c(df.residual(lm_marginal), df.residual(lm_raw), df.residual(lm_multi), NA_integer_),
-  N = nrow(data_long)
+    Model = c("lm_marginal", "lm_raw", "lm_multi", "lmm"),
+    AIC = c(AIC(lm_marginal), AIC(lm_raw), AIC(lm_multi), AIC(lmm)),
+    BIC = c(BIC(lm_marginal), BIC(lm_raw), BIC(lm_multi), BIC(lmm)),
+    logLik = c(
+        as.numeric(logLik(lm_marginal)), as.numeric(logLik(lm_raw)),
+        as.numeric(logLik(lm_multi)), as.numeric(logLik(lmm))
+    ),
+    DF_Residual = c(df.residual(lm_marginal), df.residual(lm_raw), df.residual(lm_multi), NA_integer_),
+    N = nrow(data_long)
 )
 knitr::kable(fit_tbl, digits = 3)
 ```
@@ -445,9 +461,11 @@ ggplot(contrast_df, aes(x = Dose, y = Substrate, fill = estimate)) +
 #| tbl-cap: "Estimated genotype differences (Tg – NT) by substrate and dose"
 #| echo: false
 emm_tab <- contrast_df |>
-  dplyr::select(Substrate, Dose, estimate, SE, df, t.ratio, p.value)
-knitr::kable(emm_tab, digits = 3,
-             col.names = c("Substrate", "Dose", "Estimate", "SE", "df", "t", "p"))
+    dplyr::select(Substrate, Dose, estimate, SE, df, t.ratio, p.value)
+knitr::kable(emm_tab,
+    digits = 3,
+    col.names = c("Substrate", "Dose", "Estimate", "SE", "df", "t", "p")
+)
 ```
 
 ```{r}
