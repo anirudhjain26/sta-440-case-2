@@ -1,19 +1,26 @@
 ---
 title: "STA 440 Case 2"
 author: "Krish Bansal, Lily Seelig, Anirudh Jain"
-# format: pdf
 format: 
   pdf:
     documentclass: article 
     fontsize: 11pt         
     classoption: oneside       
-editor: visual
 geometry: margin=1in
 title-block-spacing: compact
 execute: 
   echo: false
   warning: false
   message: false
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
 ---
 
 ```{r, message=FALSE}
@@ -30,43 +37,42 @@ library(broom)
 library(car)
 library(lme4)
 library(lmerTest)
+library(kableExtra)
 ```
 
 ## Background
 
-Mitochondria play a central role in cellular energy metabolism, and alterations in their molecular structures can translate into measurable physiological phenotypes. Characterizing how mitochondrial efficiency changes under different conditions provides important insights into metabolic function and disease mechanisms. 
+Mitochondria play a central role in cellular energy metabolism, and alterations in their molecular structures can translate into measurable physiological phenotypes. Characterizing how mitochondrial efficiency changes under different conditions provides important insights into metabolic function and disease mechanisms.
 
-To this end, researchers often measure mitochondrial respiration under a variety of experimental settings. Multiplexed metabolic assay platforms allow simultaneous evaluation of several aspects of mitochondrial functions across substrates, redox conditions, and energetic states. One critical readout is oxygen flux (JO2), which serves as a direct indicator of mitochondrial respiratory activity. Comparing oxygen flux between experimental groups such as non transgenic and transgenic mice provides a way to evaluate whether genetic differences are associated with altered mitochondrial functions. 
+To this end, researchers often measure mitochondrial respiration under a variety of experimental settings. Multiplexed metabolic assay platforms allow simultaneous evaluation of several aspects of mitochondrial functions across substrates, redox conditions, and energetic states. One critical readout is oxygen flux (JO2), which serves as a direct indicator of mitochondrial respiratory activity. Comparing oxygen flux between experimental groups such as non transgenic and transgenic mice provides a way to evaluate whether genetic differences are associated with altered mitochondrial functions.
 
 Our analysis focuses on modeling and testing for genotype effects on oxygen flux, while accounting for experimental design factors such as substrate type. The aim is to determine whether mitochondrial efficiency differs by genotype, and whether such effects depend on substrate choice or dose.
 
 ## Data
 
-The data for this study was collected from skeletal muscle mitochondria that are isolated from either non-transgenic or transgenic mice, measured during the mitochondrial energy transduction process. For our model we took into account two main factors: substrate type and dose. The primary factor we are interested in is genotype (non transgenic vs transgenic). Substrate and dose serve as design factors, and their interactions with genotype are of central interest in assessing whether genetic differences in mitochondrial function vary across energetic states or substrate conditions. 
+The data for this study was collected from skeletal muscle mitochondria that are isolated from either non-transgenic or transgenic mice, measured during the mitochondrial energy transduction process. For our model we took into account two main factors: substrate type and dose. The primary factor we are interested in is genotype (non transgenic vs transgenic). Substrate and dose serve as design factors, and their interactions with genotype are of central interest in assessing whether genetic differences in mitochondrial function vary across energetic states or substrate conditions.
 
 The data we were given originally was in a wide format, so we transformed it into a tidy long format for analysis. We also dropped the basal values since they represent the idle state. Some values were missing so we dropped them.
-
-## Exploratory Data Analysis
 
 ## Model Rationale
 
 We employed a sequence of models to evaluate the effects of genotype, substrate, and workload (ΔGATP) on oxygen flux (JO₂). Each model was chosen to address a specific aspect of the experimental design and to progressively incorporate complexity and biological realism.
 
-#### Baseline model (lm(JO2 \~ Substrate \* Dose)
+-   **Baseline model (lm(JO2 \~ Substrate \* Dose)**
 
-This model considers only substrate and dose effects, ignoring genotype. It serves as a sanity check to establish whether fuel type and workload influence JO₂ as expected. Its main advantage is simplicity and interpretability, but it does not address the central research question concerning genotype differences.
+    This model considers only substrate and dose effects, ignoring genotype. It serves as a sanity check to establish whether fuel type and workload influence JO₂ as expected. Its main advantage is simplicity and interpretability, but it does not address the central research question concerning genotype differences.
 
-#### Genotype-only model (lm(JO2 \~ Genotype)
+-   **Genotype-only model (lm(JO2 \~ Genotype)**
 
-This specification provides a crude comparison of JO₂ between NT and Tg mice by collapsing across all experimental conditions. It is useful as an initial test for an overall genotype effect, but it oversimplifies by ignoring the role of substrate and workload.
+    This specification provides a crude comparison of JO₂ between NT and Tg mice by collapsing across all experimental conditions. It is useful as an initial test for an overall genotype effect, but it oversimplifies by ignoring the role of substrate and workload.
 
-#### Full factorial model (lm(JO2 \~ Genotype \* Substrate \* Dose)
+-   **Full factorial model (lm(JO2 \~ Genotype \* Substrate \* Dose)**
 
-This model incorporates genotype, substrate, dose, and all interactions. It allows us to examine whether genotype effects vary across substrates or workload levels. The advantage of this approach is that it captures the complexity of the biology, including higher-order interactions. However, it treats each observation as independent and does not account for repeated measures on the same subject, which violates design assumptions.
+    This model incorporates genotype, substrate, dose, and all interactions. It allows us to examine whether genotype effects vary across substrates or workload levels. The advantage of this approach is that it captures the complexity of the biology, including higher-order interactions. However, it treats each observation as independent and does not account for repeated measures on the same subject, which violates design assumptions.
 
-#### Mixed-effects model (preferred; lmer(JO2 \~ Genotype \* Substrate \* Dose + (1 \| Subject)
+-   **Mixed-effects model (lmer(JO2 \~ Genotype \* Substrate \* Dose + (1 \| Subject)**
 
-The mixed model includes genotype, substrate, and dose as fixed effects, while adding a random intercept for the subject. This structure accounts for repeated measures within the same mouse and preserves independence across subjects. It balances interpretability with statistical validity, enabling us to test population-level effects while controlling for subject-level variability. Its main limitation is reduced power to detect high-order interactions, given the modest sample size (6 NT, 6 Tg).
+    The mixed model includes genotype, substrate, and dose as fixed effects, while adding a random intercept for the subject. This structure accounts for repeated measures within the same mouse and preserves independence across subjects. It balances interpretability with statistical validity, enabling us to test population-level effects while controlling for subject-level variability. Its main limitation is reduced power to detect high-order interactions, given the modest sample size (6 NT, 6 Tg).
 
 While simpler models provided useful descriptive insights, they failed to fully respect the experimental design. The baseline and genotype-only models ignored key sources of variation, while the full factorial model captured interaction effects but treated repeated measures from the same subject as independent, inflating the risk of false positives. The mixed-effects model addressed these shortcomings by incorporating subject-level random effects, thereby accounting for within-mouse correlation while still testing the joint effects of genotype, substrate, and workload at the population level. This framework provides the most statistically rigorous and biologically meaningful analysis of our dataset, balancing model complexity with the need to respect the hierarchical structure of the data.
 
@@ -76,21 +82,21 @@ We reshaped the raw worksheet into a tidy long format, and restricted analysis t
 
 We then fit a progression of regression models to quantify effects and interactions: - Baseline linear model without genotype: `JO2 ~ Substrate * Dose` (for design checks). - Genotype-only model: `JO2 ~ Genotype` (coarse group difference). - Full linear model: `JO2 ~ Genotype * Substrate * Dose` (all interactions). - Mixed-effects model with subject intercepts: `JO2 ~ Genotype * Substrate * Dose + (1 | Subject)`.
 
-For the linear models, we report coefficients and ANOVA tables (@tbl-lm-raw-coefs, @tbl-lm-raw-anova, @tbl-lm-multi-anova). For the mixed model, we summarize fixed effects (@tbl-lmm-fixed) and compare overall model fit across candidates using AIC/BIC and log-likelihood (@tbl-model-fit). Model adequacy was assessed via residual–fitted and normal Q–Q diagnostics (Figure @fig-diag-plots-1 and @fig-diag-plots-2). To aid interpretation, we visualized fitted curves with 95% CIs from the mixed model (@fig-ggeffects-curves) and computed estimated marginal means and Tg–NT contrasts across Substrate × Dose cells (@fig-emm-heatmap; @tbl-emm-contrasts). Supporting exploratory figures show raw trajectories and group means over dose (Figures @fig-jo2-dose-plots-1 and @fig-jo2-dose-plots-2), per-subject dose–response slopes (@fig-slopes-box), and mean JO2 heatmaps (@fig-heatmap-mean).
+For the linear models, we report coefficients and ANOVA tables (@tbl-lm-raw-coefs, @tbl-lm-raw-anova, @tbl-lm-multi-anova). For the mixed model, we summarize fixed effects (@tbl-lmm-fixed) and compare overall model fit across candidates using AIC/BIC and log-likelihood (@tbl-model-fit). Model adequacy was assessed via residual–fitted and normal Q–Q diagnostics (@fig-diag-plots-1 and @fig-diag-plots-2). To aid interpretation, we visualized fitted curves with 95% CIs from the mixed model (@fig-ggeffects-curves) and computed estimated marginal means and Tg–NT contrasts across Substrate × Dose cells (@fig-emm-heatmap; @tbl-emm-contrasts). Supporting exploratory figures show raw trajectories and group means over dose (@fig-jo2-dose-plots-1 and @fig-jo2-dose-plots-2), per-subject dose–response slopes (@fig-slopes-box), and mean JO2 heatmaps (@fig-heatmap-mean).
 
 ## Results
 
-Across substrates, JO2 exhibits a clear dose-dependent response and substantial substrate-to-substrate variability (see trajectories and means in Figures @fig-jo2-dose-plots-1 and @fig-jo2-dose-plots-2, and the mean heatmap in @fig-heatmap-mean). The baseline linear model confirms strong effects of Substrate and Dose and their interaction (@tbl-lm-raw-anova). Incorporating Genotype and its interactions in the full linear model indicates that genotype differences are not uniform; they depend on the substrate and/or dose context (@tbl-lm-multi-anova).
+Across substrates, JO2 exhibits a clear dose-dependent response and substantial substrate-to-substrate variability (see trajectories and means in @fig-jo2-dose-plots-1 and @fig-jo2-dose-plots-2, and the mean heatmap in @fig-heatmap-mean). The baseline linear model confirms strong effects of Substrate and Dose and their interaction (@tbl-lm-raw-anova). Incorporating Genotype and its interactions in the full linear model indicates that genotype differences are not uniform; they depend on the substrate and/or dose context (@tbl-lm-multi-anova).
 
 Accounting for repeated measures with a subject-level random intercept, the mixed-effects model provides the primary inference. Fixed-effect estimates in @tbl-lmm-fixed quantify the average genotype difference at the reference levels and how that difference varies with substrate and dose via interaction terms. The fitted curves from @fig-ggeffects-curves visualize these patterns: separation between Tg and NT varies by substrate and across ΔGATP, with uncertainty bands reflecting the modest sample size. The EMM contrast heatmap and table (@fig-emm-heatmap; @tbl-emm-contrasts) pinpoint specific Substrate × Dose combinations where Tg differs from NT and summarize effect sizes with standard errors and p-values.
 
-Taken together, the results support dose- and substrate-dependent mitochondrial respiration with evidence of genotype effects that are context-specific. Where significant contrasts appear in @tbl-emm-contrasts, they align with the visual separation seen in @fig-ggeffects-curves, while diagnostics in Figures @fig-diag-plots-1 and @fig-diag-plots-2 do not indicate major violations of linear model assumptions. Model comparison in @tbl-model-fit favors the mixed-effects specification, balancing improved fit with appropriate handling of within-subject correlation.
+Taken together, the results support dose- and substrate-dependent mitochondrial respiration with evidence of genotype effects that are context-specific. Where significant contrasts appear in @tbl-emm-contrasts, they align with the visual separation seen in @fig-ggeffects-curves, while diagnostics in @fig-diag-plots-1 and @fig-diag-plots-2 do not indicate major violations of linear model assumptions. Model comparison in @tbl-model-fit favors the mixed-effects specification, balancing improved fit with appropriate handling of within-subject correlation.
 
 ## Limitations
 
-There are several limitations of this analysis that should be considered when interpreting the results. First, the analysis focused exclusively on the dose-response slopes of the mitochondrial oxygen flux (JO2) after dropping basal condition. Additionally, the analysis is limited to mitochondrial oxygen flux and does not consider other relevant outcomes like reactive oxygen species, membrane potential, and redox state. Also, although the model accounted for some heteroscedasticity, the increasing variance of the JO2 with higher mean values was only partially addressed and may still affect estimates. 
+There are several limitations of this analysis that should be considered when interpreting the results. First, the analysis focused exclusively on the dose-response slopes of the mitochondrial oxygen flux (JO2) after dropping basal condition. Additionally, the analysis is limited to mitochondrial oxygen flux and does not consider other relevant outcomes like reactive oxygen species, membrane potential, and redox state. Also, although the model accounted for some heteroscedasticity, the increasing variance of the JO2 with higher mean values was only partially addressed and may still affect estimates.
 
-The study was also limited by sample size (6 non-transgenic mice and 6 transgenic mice) which reduces the statistical power, particularly for detecting complex interactions or subtle nonlinearities. To account for this, the analysis assumed a linear relationship between the dose and JO2 across the studied range. While the assumption appeared reasonable within the available data, nonlinear responses outside of the observed range cannot be ruled out. Finally, the mixed effects modeling approach included random intercepts to capture subject level variability but did not incorporate random slopes, potentially underestimating within subject differences in dose response patterns. However, residuals were approximately normal after accounting for fixed effects, and the assumption of independence across subjects was reasonable given the experimental design. 
+The study was also limited by sample size (6 non-transgenic mice and 6 transgenic mice) which reduces the statistical power, particularly for detecting complex interactions or subtle nonlinearities. To account for this, the analysis assumed a linear relationship between the dose and JO2 across the studied range. While the assumption appeared reasonable within the available data, nonlinear responses outside of the observed range cannot be ruled out. Finally, the mixed effects modeling approach included random intercepts to capture subject level variability but did not incorporate random slopes, potentially underestimating within subject differences in dose response patterns. However, residuals were approximately normal after accounting for fixed effects, and the assumption of independence across subjects was reasonable given the experimental design.
 
 ## Conclusions
 
@@ -145,15 +151,10 @@ data_long <- dat |>
         )
     ) |>
     drop_na(JO2)
-
 ```
 
 ```{r}
-glimpse(data_long)
-```
-
-```{r}
-#| label: histograms
+#| label: fig-histograms
 #| fig-cap: [
 #|   "Distribution of raw JO2 values",
 #|   "Distribution of log10-transformed JO2 values"
@@ -178,7 +179,7 @@ hist(
 hist(
     log10(data_long$JO2),
     breaks = 60,
-    main = "Distribution of Log Transformed JO2 Values",
+    main = "Distribution of Log Transformed JO2",
     xlab = "Log(Oxygen Consumption, JO2)",
     ylab = "Frequency",
     col = "lightgreen",
@@ -191,7 +192,7 @@ data_long <- data_long |>
 ```
 
 ```{r}
-#| label: jo2-dose-plots
+#| label: fig-jo2-dose-plots
 #| fig-cap: [
 #|   "JO2 across dose by substrate and genotype",
 #|   "Mean JO2 with ±SE by genotype and substrate"
@@ -244,7 +245,7 @@ ggplot(summary_data, aes(Dose, mean_JO2, color = Genotype, group = Genotype)) +
 ```
 
 ```{r}
-#| label: baseline-bar
+#| label: fig-baseline-bar
 #| fig-cap: "Mean JO2 at Basal and low dose (-13.65)"
 #| fig-alt: "Bar chart of mean JO2 comparing Basal to the lowest non-basal dose, by genotype and substrate"
 data_long |>
@@ -257,11 +258,11 @@ data_long |>
         width = 0.2, position = position_dodge(0.9)
     ) +
     facet_wrap(~Substrate, scales = "free_y") +
-    theme_minimal()
+    theme_minimal(base_size = 7)
 ```
 
 ```{r}
-#| label: slopes-box
+#| label: fig-slopes-box
 #| fig-cap: "Distribution of JO2–dose slopes by genotype and substrate"
 #| fig-alt: "Boxplots of linear regression slopes of JO2 versus dose for each subject, split by genotype across substrates"
 slopes <- data_long |>
@@ -279,7 +280,7 @@ ggplot(slopes, aes(x = Substrate, y = estimate, fill = Genotype)) +
 ```
 
 ```{r}
-#| label: heatmap-mean
+#| label: fig-heatmap-mean
 #| fig-cap: "Heatmap of mean JO2 across substrates and doses"
 #| fig-alt: "Tile heatmap showing mean JO2 for each substrate and dose combination, faceted by genotype"
 heat <- data_long |>
@@ -290,16 +291,17 @@ ggplot(heat, aes(x = Dose, y = Substrate, fill = mean_JO2)) +
     geom_tile() +
     facet_wrap(~Genotype) +
     scale_fill_viridis_c() +
-    theme_minimal() +
-    labs(title = "Heatmap of mean JO2 across Substrates & Doses") +
+    theme_minimal(base_size = 8) +
+    labs(title = "Heatmap of mean JO2 \
+across Substrates & Doses") +
     theme(
         axis.text.x = element_text(angle = 45, hjust = 1) # rotate x labels
     )
 ```
 
-Linear model on raw JO2 & Diagnostics
+\newpage
 
-```{r}
+```{r, include=FALSE}
 
 # Linear model on raw JO2, ignoring subject correlation
 lm_raw <- lm(JO2 ~ Substrate * Dose, data = data_long)
@@ -316,9 +318,7 @@ Anova(lm_raw, type = 3) # Type III
 
 ```
 
-Marginal Model
-
-```{r}
+```{r, include=FALSE}
 # Marginal (group-level) model: JO2 by genotype only
 lm_marginal <- lm(JO2 ~ Genotype, data = data_long)
 
@@ -336,9 +336,7 @@ Anova(lm_multi, type = 3) # tests each term with all interactions
 
 ```
 
-Mixed Model
-
-```{r}
+```{r, include=FALSE}
 # Mixed model: random intercept for each mouse
 lmm <- lmer(JO2 ~ Genotype * Substrate * Dose + (1 | Subject), data = data_long)
 
@@ -349,7 +347,9 @@ summary(lmm)
 anova(lmm, type = 3) # Type III ANOVA table
 ```
 
-Model Tables
+\newpage
+
+## Model Tables
 
 ```{r}
 #| label: tbl-lm-raw-coefs
@@ -381,18 +381,27 @@ anova_multi <- dplyr::select(anova_multi, Term, dplyr::everything())
 knitr::kable(anova_multi, digits = 3)
 ```
 
+\begingroup
+\scriptsize
+
 ```{r}
 #| label: tbl-lmm-fixed
 #| tbl-cap: "Mixed model fixed effects (lmer)"
 #| echo: false
-lmm_coef <- as.data.frame(coef(summary(lmm)))
+library(dplyr)
+library(knitr)
+
+lmm_coef <- as.data.frame(coef(summary(lmm)), stringsAsFactors = FALSE)
 lmm_coef$Term <- rownames(lmm_coef)
 lmm_coef <- dplyr::select(lmm_coef, Term, Estimate, `Std. Error`, df, `t value`, `Pr(>|t|)`)
-knitr::kable(lmm_coef,
-    digits = 3,
-    col.names = c("Term", "Estimate", "Std. Error", "df", "t value", "Pr(>|t|)")
-)
+
+# Safer header: avoid the vertical bars
+cn <- c("Term", "Estimate", "Std. Error", "df", "t value", "p-value")
+
+knitr::kable(lmm_coef, digits = 3, col.names = cn, booktabs = TRUE, escape = TRUE)
 ```
+
+\endgroup
 
 ```{r}
 #| label: tbl-model-fit
@@ -412,8 +421,15 @@ fit_tbl <- tibble::tibble(
 knitr::kable(fit_tbl, digits = 3)
 ```
 
+\newpage
+
+## Results
+
 ```{r, warning=FALSE}
-#| label: ggeffects-curves
+#| label: fig-ggeffects-curves
+#| fig-width: 6
+#| fig-height: 3.6
+#| fig-align: 'center'
 #| fig-cap: "Predicted JO2 vs dose by substrate and genotype from mixed model"
 #| fig-alt: "Model-predicted JO2 curves with confidence ribbons across dose, faceted by substrate and colored by genotype"
 library(ggeffects)
@@ -427,7 +443,7 @@ ggplot(pred, aes(x = x, y = predicted, color = group)) +
     geom_line(size = 1) +
     geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = group), alpha = 0.2, color = NA) +
     facet_wrap(~facet, scales = "free_y") +
-    theme_minimal() +
+    theme_minimal(base_size = 7) +
     labs(
         title = "Fitted JO2 vs Dose by Substrate and Genotype",
         x = "Dose (ΔGATP)", y = "Predicted JO2",
@@ -436,7 +452,10 @@ ggplot(pred, aes(x = x, y = predicted, color = group)) +
 ```
 
 ```{r}
-#| label: emm-heatmap
+#| label: fig-emm-heatmap
+#| fig-width: 5
+#| fig-height: 3
+#| fig-align: 'center'
 #| fig-cap: "Genotype effect (Tg – NT) across substrates and doses"
 #| fig-alt: "Heatmap of estimated Tg minus NT differences in JO2 across substrates and doses"
 library(emmeans)
@@ -456,7 +475,7 @@ ggplot(contrast_df, aes(x = Dose, y = Substrate, fill = estimate)) +
         low = "blue", mid = "white", high = "red", midpoint = 0,
         name = "Tg – NT difference"
     ) +
-    theme_minimal() +
+    theme_minimal(base_size = 7) +
     labs(
         title = "Genotype Effect (Tg – NT) across \
        Substrates and Doses",
@@ -477,7 +496,10 @@ knitr::kable(emm_tab,
 ```
 
 ```{r}
-#| label: diag-plots
+#| label: fig-diag-plots
+#| fig-width: 4
+#| fig-height: 2.4
+#| fig-align: 'center'
 #| fig-cap: [
 #|   "Residuals versus fitted values for mixed model",
 #|   "QQ plot of mixed model residuals"
