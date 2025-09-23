@@ -34,7 +34,7 @@ library(lmerTest)
 
 ## Background
 
-Mitochondria play a central role in cellular energy metabolism, and alterations in their molecular structures san translate into measurable physiological phenotypes. Characterizing how mitochondrial efficiency changes under different conditions provides important insights into metabolic function and disease mechanisms. 
+Mitochondria play a central role in cellular energy metabolism, and alterations in their molecular structures can translate into measurable physiological phenotypes. Characterizing how mitochondrial efficiency changes under different conditions provides important insights into metabolic function and disease mechanisms. 
 
 To this end, researchers often measure mitochondrial respiration under a variety of experimental settings. Multiplexed metabolic assay platforms allow simultaneous evaluation of several aspects of mitochondrial functions across substrates, redox conditions, and energetic states. One critical readout is oxygen flux (JO2), which serves as a direct indicator of mitochondrial respiratory activity. Comparing oxygen flux between experimental groups such as non transgenic and transgenic mice provides a way to evaluate whether genetic differences are associated with altered mitochondrial functions. 
 
@@ -42,7 +42,7 @@ Our analysis focuses on modeling and testing for genotype effects on oxygen flux
 
 ## Data
 
-The data for this study was collected from skeletal muscle mitochondria that are isolated from either non-transgenic or transgenic mice, measured during the mitochondrial energy transduction process. For our model we took into account two main factors: substrate type and dose.The primary factor we are interested in is genotype (non transgenic vs transgenic). Substrate and dose serve as design factors, and their interactions with genotype are of central interest in assessing whether genetic differences in mitochondrial function vary across energetic states or substrate conditions. 
+The data for this study was collected from skeletal muscle mitochondria that are isolated from either non-transgenic or transgenic mice, measured during the mitochondrial energy transduction process. For our model we took into account two main factors: substrate type and dose. The primary factor we are interested in is genotype (non transgenic vs transgenic). Substrate and dose serve as design factors, and their interactions with genotype are of central interest in assessing whether genetic differences in mitochondrial function vary across energetic states or substrate conditions. 
 
 The data we were given originally was in a wide format, so we transformed it into a tidy long format for analysis. We also dropped the basal values since they represent the idle state. Some values were missing so we dropped them.
 
@@ -90,9 +90,17 @@ Taken together, the results support dose- and substrate-dependent mitochondrial 
 
 There are several limitations of this analysis that should be considered when interpreting the results. First, the analysis focused exclusively on the dose-response slopes of the mitochondrial oxygen flux (JO2) after dropping basal condition. Additionally, the analysis is limited to mitochondrial oxygen flux and does not consider other relevant outcomes like reactive oxygen species, membrane potential, and redox state. Also, although the model accounted for some heteroscedasticity, the increasing variance of the JO2 with higher mean values was only partially addressed and may still affect estimates. 
 
-The study was also limited by sample size (6 non-transgenic mice and 6 transgenic mice) which reduces the statistical power, particularly for detecting complex interactions or subtle nonlinearities. To account for this, the analysis assumed a linear relationship between the free energy of ATP hydrolysis and JO2 across the studied range. While the assumption appeared reasonable within the available data, nonlinear responses outside of the observed range cannot be ruled out. Finally, the mixed effects modeling approach included random intercepts to capture subject level variability but did not incorporate random slopes, potentially underestimating within subject differences in dose response patterns. However, residuals were approximately normal after accounting for fixed effects, and the assumption of independence across subjects was reasonable given the experimental design. 
+The study was also limited by sample size (6 non-transgenic mice and 6 transgenic mice) which reduces the statistical power, particularly for detecting complex interactions or subtle nonlinearities. To account for this, the analysis assumed a linear relationship between the dose and JO2 across the studied range. While the assumption appeared reasonable within the available data, nonlinear responses outside of the observed range cannot be ruled out. Finally, the mixed effects modeling approach included random intercepts to capture subject level variability but did not incorporate random slopes, potentially underestimating within subject differences in dose response patterns. However, residuals were approximately normal after accounting for fixed effects, and the assumption of independence across subjects was reasonable given the experimental design. 
 
 ## Conclusions
+
+Our analysis evaluated the effects of genotype, substrate and energetic workload on mitochondrial respiration in skeletal muscle using oxygen flux as the primary outcome. By applying a sequence of regression models and ultimately using a mixed effects model, we were able to account for both experimental design factors and within subject correlation to look into genotype dependent differences.
+
+Our results found that strong dose and substrate dependent variation in mitochondrial respiration. These results suggest that the transgenic modification influences mitochondrial efficiency in a manner that depends on the energetic environment, rather than exerting a uniform effect across all conditions.
+
+The mixed-effects model showed the most biologically and statistically relevant inference because it was able to balance complexity with the constraints of our small sample size. While there were significant contrasts that highlighted conditions where transgenic mitochondria differ from the non-transgenic controls, the broader interpretation should be take into account the limitations of the analysis, including small sample size, potential heteroscedasticity, and the restriction to oxygen flux as the only outcome we analyzed.
+
+Overall, our analysis shows that looking at both substrate and dose together with genotype helps reveal patterns in how mitochondria function. The findings highlight the importance of considering experimental context when evaluating genetic influences on bioenergetics and provide a foundation for future studies that incorporate larger cohorts, have additional mitochondrial outcomes, and have more flexible modeling of the relationships between dose and response.
 
 \newpage
 
