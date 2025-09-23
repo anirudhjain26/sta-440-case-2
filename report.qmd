@@ -54,11 +54,11 @@ The data for this study was collected from skeletal muscle mitochondria that are
 
 The data we were given originally was in a wide format, so we transformed it into a tidy long format for analysis. We also dropped the basal values since they represent the idle state. Some values were missing so we dropped them.
 
-The distribution of raw JO₂ values was right-skewed, with a long tail toward higher flux (@ref(fig-histograms)a). A log-transformation produced a more symmetric, approximately normal distribution (@ref(fig-histograms)b), suggesting potential benefits for variance stabilization. However, since model assumptions were reasonably satisfied on the raw scale, the log transformation was used only for exploratory visualization and not in the final modeling.
+The distribution of raw JO₂ values was right-skewed, with a long tail toward higher flux (@fig-histograms-1). A log-transformation produced a more symmetric, approximately normal distribution (@fig-histograms-2), suggesting potential benefits for variance stabilization. However, since model assumptions were reasonably satisfied on the raw scale, the log transformation was used only for exploratory visualization and not in the final modeling.
 
-Trajectories of JO₂ across ΔGATP levels revealed consistent dose–response relationships (@ref(fig-jo2-dose-plots)a): respiration increased as workload rose, and transgenic (Tg) mice generally exhibited higher flux than non-transgenic (NT) controls. Group-level means with standard errors reinforced these patterns (@ref(fig-jo2-dose-plots)b), showing the strongest Tg–NT separation for carbohydrate-linked substrates (GM, PM), moderate differences for mixed fuels (PMPc, PMOc), and smaller effects for fatty acid substrates (OcM, PcM).
+Trajectories of JO₂ across ΔGATP levels revealed consistent dose–response relationships (@fig-jo2-dose-plots-1): respiration increased as workload rose, and transgenic (Tg) mice generally exhibited higher flux than non-transgenic (NT) controls. Group-level means with standard errors reinforced these patterns (@fig-jo2-dose-plots-2), showing the strongest Tg–NT separation for carbohydrate-linked substrates (GM, PM), moderate differences for mixed fuels (PMPc, PMOc), and smaller effects for fatty acid substrates (OcM, PcM).
 
-Barplots comparing basal and low-dose conditions confirmed that Tg mitochondria already displayed higher respiration at early workloads (@ref(fig-baseline-bar)). Boxplots of subject-specific JO₂–dose slopes highlighted that Tg mice exhibited steeper workload sensitivity, particularly under carbohydrate conditions (@ref(fig-slopes-box)). Finally, a heatmap of mean JO₂ across substrates and doses illustrated the overall pattern of higher respiration in Tg mice, with the largest differences observed for carbohydrate fuels (@ref(fig-heatmap-mean)).
+Barplots comparing basal and low-dose conditions confirmed that Tg mitochondria already displayed higher respiration at early workloads (@fig-baseline-bar). Boxplots of subject-specific JO₂–dose slopes highlighted that Tg mice exhibited steeper workload sensitivity, particularly under carbohydrate conditions (@fig-slopes-box). Finally, a heatmap of mean JO₂ across substrates and doses illustrated the overall pattern of higher respiration in Tg mice, with the largest differences observed for carbohydrate fuels (@fig-heatmap-mean).
 
 Together, these exploratory findings highlighted the importance of genotype, substrate, and dose — and their interactions — as key factors for formal modeling. They also emphasized the need to account for repeated measures within subjects, since while overall patterns were consistent, baseline levels varied by mouse.
 
@@ -68,7 +68,7 @@ We employed a sequence of models to evaluate the effects of genotype, substrate,
 
 -   **Baseline model (lm(JO2 \~ Substrate \* Dose)**
 
-    This model considers only substrate and dose effects, ignoring genotype. It serves as a sanity check to establish whether fuel type and workload influence JO₂ as expected. Its main advantage is simplicity and interpretability, but it does not address the central research question concerning genotype differences.
+    This model considers only substrate and dose effects, ignoring genotype. It serves as a sanity check to establish whether fuel type and workload influence JO₂ as expected. 
 
 -   **Genotype-only model (lm(JO2 \~ Genotype)**
 
@@ -108,13 +108,11 @@ The study was also limited by sample size (6 non-transgenic mice and 6 transgeni
 
 ## Conclusions
 
-Our analysis evaluated the effects of genotype, substrate and energetic workload on mitochondrial respiration in skeletal muscle using oxygen flux as the primary outcome. By applying a sequence of regression models and ultimately using a mixed effects model, we were able to account for both experimental design factors and within subject correlation to look into genotype dependent differences.
+Our analysis evaluated genotype, substrate, and energetic workload effects on skeletal‑muscle mitochondrial respiration (JO₂), ultimately selecting a mixed‑effects model to account for experimental factors and within‑subject correlation.
 
-Our results found that strong dose and substrate dependent variation in mitochondrial respiration. These results suggest that the transgenic modification influences mitochondrial efficiency in a manner that depends on the energetic environment, rather than exerting a uniform effect across all conditions.
+We observed strong dose‑ and substrate‑dependent variation, with genotype effects that depended on energetic context rather than being uniform across conditions. The mixed‑effects model provided the most biologically and statistically relevant inference, and significant contrasts highlighted settings where Tg differed from NT. Interpretation should consider the small sample size, possible heteroscedasticity, and our focus on JO₂ alone.
 
-The mixed-effects model showed the most biologically and statistically relevant inference because it was able to balance complexity with the constraints of our small sample size. While there were significant contrasts that highlighted conditions where transgenic mitochondria differ from the non-transgenic controls, the broader interpretation should be take into account the limitations of the analysis, including small sample size, potential heteroscedasticity, and the restriction to oxygen flux as the only outcome we analyzed.
-
-Overall, our analysis shows that looking at both substrate and dose together with genotype helps reveal patterns in how mitochondria function. The findings highlight the importance of considering experimental context when evaluating genetic influences on bioenergetics and provide a foundation for future studies that incorporate larger cohorts, have additional mitochondrial outcomes, and have more flexible modeling of the relationships between dose and response.
+Overall, considering substrate and dose alongside genotype reveals context‑dependent mitochondrial function and motivates future studies with larger cohorts, additional mitochondrial outcomes, and more flexible dose–response modeling.
 
 \newpage
 
